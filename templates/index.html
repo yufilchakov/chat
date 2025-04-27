@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Chat</title>
+</head>
+<body>
+    <h1>WebSocket Chat</h1>
+    <input id='userId' placeholder='Введите свой id' />
+    <input id='message' placeholder='Введите сообщение' />
+    <input type='file' id='fileInput' />
+    <button onclick='sendMessage()'>Отправить</button>
+    <div id='chat'></div>
+
+    <script>
+        const userId = document.getElementById('userId');
+        const messageInput = document.getElementById('message');
+        const fileInput = document.getElementById('fileInput');
+        const chat = document.getElementById('chat');
+        let websocket;
+
+        function connect() {
+            websocket = new WebSocket(`ws://localhost:8000/ws/${userId.value}`);
+            websocket.onmessage = (event) => {
+                const message = document.createElement('div');
+                message.innerHTML = event.data;
+                chat.appendChild(message);
+            };
+        }
+
+        function sendMessage() {
+            if (websocket) {
+                const message = messageInput.value;
+                if (message) {
+                    websocket.send(JSON.stringify({ type: 'text', content: message }));
+                    messageInput.value = '';
+                }
+
+                const file = fileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64Data = event.target.result.split(',')[1];
+                        websocket.send(JSON.stringify({ type: 'file', content: base64Data, filename: file.name }));
+                        fileInput.value = '';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        userId.addEventListener('change', connect);
+    </script>
+</body>
+</html>
