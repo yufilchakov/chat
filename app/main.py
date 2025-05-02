@@ -21,6 +21,6 @@ templates = Jinja2Templates(directory='templates')
 
 
 @app.get('/', response_class=HTMLResponse)
-async def root(request: Request):
+async def root(request: Request) -> HTMLResponse:
     """Обработчик корневого маршрута. Возвращает HTML-страницу."""
     return templates.TemplateResponse('index.html', {'request': request})
