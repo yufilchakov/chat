@@ -4,51 +4,94 @@
     <title>WebSocket Chat</title>
 </head>
 <body>
-    <h1>WebSocket Chat</h1>
-    <input id='userId' placeholder='Введите свой id' />
-    <input id='message' placeholder='Введите сообщение' />
-    <input type='file' id='fileInput' />
-    <button onclick='sendMessage()'>Отправить</button>
-    <div id='chat'></div>
+<h1>WebSocket Chat</h1>
+<input id='userId' placeholder='Введите свой id'/>
+<input id='message' placeholder='Введите сообщение'/>
+<input type='file' id='fileInput'/>
+<button onclick='sendMessage()'>Отправить</button>
+<div id='chat'></div>
 
-    <script>
-        const userId = document.getElementById('userId');
-        const messageInput = document.getElementById('message');
-        const fileInput = document.getElementById('fileInput');
-        const chat = document.getElementById('chat');
-        let websocket;
+<script>
+    const userIdInput = document.getElementById('userId');
+    const messageInput = document.getElementById('message');
+    const fileInput = document.getElementById('fileInput');
+    const chat = document.getElementById('chat');
+    let websocket;
 
-        function connect() {
-            websocket = new WebSocket(`ws://localhost:8000/ws/${userId.value}`);
-            websocket.onmessage = (event) => {
-                const message = document.createElement('div');
-                message.innerHTML = event.data;
-                chat.appendChild(message);
+    function connect() {
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.close();
+        }
+
+        const userId = userIdInput.value;
+
+        if (!userId) {
+            console.warn("ID пользователя пуст. Введите ID пользователя.");
+            return;
+        }
+
+
+        websocket = new WebSocket(`ws://localhost:8000/chat/ws/${userId}`);
+        websocket.onopen = () => {
+            console.log("Подключено к WebSocket");
+        };
+        websocket.onmessage = (event) => {
+            const message = document.createElement('div');
+            message.innerHTML = event.data;
+            chat.appendChild(message);
+        };
+        websocket.onclose = () => {
+            console.log("Отключено от WebSocket");
+        };
+        websocket.onerror = (error) => {
+            console.error("Ошибка WebSocket:", error);
+        };
+    }
+
+    function sendMessage() {
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            const message = messageInput.value;
+            const userId = document.getElementById('userId').value;
+
+            if (message) {
+                const data = {
+                    user_id: userId,
+                    content: message,
+                    type: 'text',
+                    filename: null,
+                    file_content: null
+                };
+                websocket.send(JSON.stringify(data));
+                messageInput.value = '';
+        }
+
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result.split(',')[1];
+                const data = {
+                    user_id: userId,
+                    content: base64Data,
+                    type: 'file',
+                    filename: file.name,
+                    file_content: base64Data
+                };
+                websocket.send(JSON.stringify(data));
+                fileInput.value = '';
             };
+            reader.readAsDataURL(file);
         }
-
-        function sendMessage() {
-            if (websocket) {
-                const message = messageInput.value;
-                if (message) {
-                    websocket.send(JSON.stringify({ type: 'text', content: message }));
-                    messageInput.value = '';
-                }
-
-                const file = fileInput.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        const base64Data = event.target.result.split(',')[1];
-                        websocket.send(JSON.stringify({ type: 'file', content: base64Data, filename: file.name }));
-                        fileInput.value = '';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
+        } else {
+            console.warn("Не подключено к WebSocket. Введите идентификатор пользователя и подключитесь.");
         }
+    }
 
-        userId.addEventListener('change', connect);
-    </script>
+    connect();
+
+    userIdInput.addEventListener('change', connect);
+
+
+</script>
 </body>
 </html>
