@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-app.include_router(chat_router)
+app.include_router(chat_router, prefix='/chat')
 
 templates = Jinja2Templates(directory='templates')
 
