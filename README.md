@@ -10,15 +10,16 @@
 
 ## Установка
 1. Клонируйте репозиторий:
+
    git clone https://github.com/yufilchakov/chat
 
-   cd chat
-
 2. Установите необходимые зависимости:
+
   pip install -r requirements.txt
 
 ## Запуск приложения
 Для запуска приложения используйте команду:
+
 uvicorn app.main:app --reload
 
 ## Использование
