@@ -15,12 +15,12 @@
 
 2. Установите необходимые зависимости:
 
-  pip install -r requirements.txt
+   pip install -r requirements.txt
 
 ## Запуск приложения
 Для запуска приложения используйте команду:
 
-uvicorn app.main:app --reload
+   uvicorn app.main:app --reload
 
 ## Использование
 1. Откройте браузер и перейдите по адресу http://127.0.0.1:8000/.
